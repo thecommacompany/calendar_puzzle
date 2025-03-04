@@ -36,23 +36,23 @@ const gameStarted = ref(false);
 // Sound effects
 const sounds = {
   ambient: new Howl({
-    src: ['/src/assets/sounds/ambient.mp3'],
+    src: ['/sounds/ambient.mp3'],
     loop: true,
     volume: 0.3,
     onload: () => checkAllSoundsLoaded(),
   }),
   win: new Howl({
-    src: ['/src/assets/sounds/win.mp3'],
+    src: ['/sounds/win.mp3'],
     volume: 0.8,
     onload: () => checkAllSoundsLoaded(),
   }),
   woodDrop: new Howl({
-    src: ['/src/assets/sounds/wood_drop.mp3'],
+    src: ['/sounds/wood_drop.mp3'],
     volume: 0.3,
     onload: () => checkAllSoundsLoaded(),
   }),
   woodFail: new Howl({
-    src: ['/src/assets/sounds/wood_fail.mp3'],
+    src: ['/sounds/wood_fail.mp3'],
     volume: 0.6,
     onload: () => checkAllSoundsLoaded(),
   })
