@@ -2,12 +2,16 @@ import { defineStore } from 'pinia'
 
 interface Cell {
   id: number
+  x: number | undefined
+  y: number | undefined
+  type: string
+  value: string
   rowIndex: number
   colIndex: number
+  width: number | undefined
+  height: number | undefined
   isOccupied: boolean
-  type: string
-  value?: string
-  pieceId?: number | null
+  pieceId: number | null
 }
 
 interface Piece {
