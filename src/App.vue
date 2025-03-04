@@ -509,7 +509,7 @@ const toggleDatePicker = () => {
 
 <template>
   
-  <div class="gamearea relative h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-amber-100" ref="gameara">
+  <div class="gamearea relative h-[100dvh] bg-gradient-to-br from-amber-50 via-orange-50 to-amber-100" ref="gameara">
    <!-- Loading overlay -->
    <div v-if="!gameStarted" class="fixed inset-0 bg-amber-100 flex items-center justify-center z-50">
      <div class="text-center">
