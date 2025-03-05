@@ -9,16 +9,16 @@ const cellSize: number = 40
 // Function to determine which gradient to use based on piece ID
 const getPieceGradient = (pieceId: number): string => {
   const gradientClasses: string[] = [
-    'bg-gradient-to-br from-amber-400 to-orange-500', // 1
-    'bg-gradient-to-br from-rose-400 to-red-500',     // 2
-    'bg-gradient-to-br from-orange-300 to-amber-600', // 3
-    'bg-gradient-to-br from-amber-300 to-yellow-500', // 4
-    'bg-gradient-to-br from-orange-300 to-red-400',   // 5
-    'bg-gradient-to-br from-rose-300 to-amber-400',   // 6
-    'bg-gradient-to-br from-amber-200 to-orange-400', // 7
-    'bg-gradient-to-br from-red-300 to-amber-500',    // 8
-    'bg-gradient-to-br from-orange-200 to-red-400',   // 9
-    'bg-gradient-to-br from-yellow-300 to-amber-500'  // 10
+    'bg-gradient-to-br from-[#FF6B6B] to-[#EE5253]',     // Coral Red
+    'bg-gradient-to-br from-[#A3CB38] to-[#C4E538]',     // Fresh Green
+    'bg-gradient-to-br from-[#FDA7DF] to-[#D980FA]',     // Lavender Pink
+    'bg-gradient-to-br from-[#FFA502] to-[#FF9F1A]',     // Orange
+    'bg-gradient-to-br from-[#9B59B6] to-[#8E44AD]',     // Royal Purple
+    'bg-gradient-to-br from-[#FF9FF3] to-[#F368E0]',     // Soft Pink
+    'bg-gradient-to-br from-[#20BF6B] to-[#0FB9B1]',     // Turquoise
+    'bg-gradient-to-br from-[#F97F51] to-[#EB4D4B]',     // Reddish Orange
+    'bg-gradient-to-br from-[#45AAF2] to-[#2D98DA]',     // Sky Blue
+    'bg-gradient-to-br from-[#F8C291] to-[#F6B93B]'      // Golden
   ];
   
   return gradientClasses[(pieceId - 1) % gradientClasses.length];
@@ -75,23 +75,40 @@ const cancelPress = (): void => {
 <style>
 .piece-grid {
   position: relative;
-  /* The exact size will be calculated dynamically */
   width: 100%;
   height: 100%;
-  transition: transform 0.3s ease;
-}
-.piece-cell {
-  position: absolute;
-  width: 40px; /* Match your board cell size */
-  height: 40px; /* Match your board cell size */
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  box-shadow: 3px 3px 8px rgba(0, 0, 0, 0.15);
-  border-radius: 6px;
-  transition: all 0.2s ease;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: transform;
 }
 
-.piece-cell:hover {
-  box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.2);
-  transform: translateY(-1px);
+.piece-cell {
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  border-radius: 4px;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: grab;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin: 0.5px;
+}
+
+.piece-cell::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0.1),
+    rgba(255, 255, 255, 0)
+  );
+  border-radius: 4px;
+}
+
+.piece-grid:active {
+  cursor: grabbing;
+}
+
+.piece-grid.dragging {
+  opacity: 0.9;
 }
 </style>

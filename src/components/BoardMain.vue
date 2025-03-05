@@ -1,6 +1,6 @@
 
 <script setup lang="ts">
-import { onMounted,useTemplateRef } from 'vue';
+import { onMounted, useTemplateRef, computed } from 'vue';
 import { useGameStore } from '../stores/game';
 
 interface BoardCell {
@@ -151,19 +151,36 @@ onMounted(() => {
   }
   
 })
+const solveDate = defineModel<string>('solveDate')
+const dayNames = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT']
+const monthNames = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC']
 
+const parsedSolveDate = computed(() => {
+  if (!solveDate.value) return null
+  const date = new Date(solveDate.value)
+  return {
+    month: monthNames[date.getMonth()],
+    day: dayNames[date.getDay()],
+    date: date.getDate().toString()
+  }
+})
 
-
+const isHighlighted = (cell: BoardCell) => {
+  if (!parsedSolveDate.value) return false
+  return (cell.type === 'month' && cell.value === parsedSolveDate.value.month) ||
+         (cell.type === 'day' && cell.value === parsedSolveDate.value.day) ||
+         (cell.type === 'date' && cell.value === parsedSolveDate.value.date)
+}
 </script>
 
 <template>
- <div class="border-black border-10 text-gray-900 text-sm">
+ <div class="text-gray-900 text-sm">
     <div class="board-grid" ref="boardRef">
       <template v-for="row in board">
         <template v-for="cell in row.items" :key="cell.id" >
           <div v-if="cell.type=='blocked'" class="grid-cell blocked" :id="'cell-'+cell.id"></div>
           <div v-else-if="cell.type=='empty'" class="grid-cell empty" :id="'cell-'+cell.id"></div>
-          <div v-else class="grid-cell" :class="cell.type" :id="'cell-'+cell.id">
+          <div v-else class="grid-cell" :class="[cell.type, { 'highlighted': isHighlighted(cell) }]" :id="'cell-'+cell.id">
             {{ cell.value }}
           </div>
         </template>
@@ -178,6 +195,29 @@ onMounted(() => {
   grid-template-columns: repeat(9, 40px);
   grid-template-rows: repeat(6, 40px);
   gap: 0;
+  background: linear-gradient(135deg, #2c5364, #203a43);
+  padding: 16px;
+  border-radius: 10px;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3),
+              inset 0 4px 8px rgba(0, 0, 0, 0.3),
+              inset 0 -2px 4px rgba(0, 0, 0, 0.2);
+  border: 3px solid #1c3d4d;
+  position: relative;
+  isolation: isolate;
+}
+
+.board-grid::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(45deg, 
+    rgba(255, 255, 255, 0.1),
+    transparent 40%,
+    rgba(255, 255, 255, 0.05) 80%
+  );
+  border-radius: 18px;
+  z-index: 1;
+  pointer-events: none;
 }
 
 .grid-cell {
@@ -186,14 +226,71 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: white;
+  background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+  /* border: 2px solid rgba(0, 0, 0, 0.1); */
+  font-weight: 600;
+  color: #495057;
+  /* text-shadow: 0 1px 1px rgba(255, 255, 255, 0.7); */
+  /* box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05); */
+  /* transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); */
+  position: relative;
+  font-size: 0.775rem;
+  letter-spacing: 0.02em;
+  z-index: 2;
+  /* border-radius: 8px; */
+  /* margin: 1px; */
 }
 
+/* .grid-cell:not(.blocked):not(.empty):hover {
+  transform: translateY(-1px);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05),
+              0 4px 8px rgba(0, 0, 0, 0.1);
+} */
+
 .blocked {
-  background-color: gray;
+  background: linear-gradient(135deg, #343a40, #212529);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
+  border: 2px solid rgba(0, 0, 0, 0.2);
 }
 
 .empty {
-  background-color: white;
+  background: linear-gradient(135deg, #e9ecef, #dee2e6);
+  opacity: 0.8;
+  border: 2px solid rgba(0, 0, 0, 0.05);
+}
+
+/* .month, .day {
+  background: linear-gradient(135deg, #ffd43b, #fab005);
+  color: #495057;
+  font-weight: 700;
+  box-shadow: inset 0 -2px 4px rgba(0, 0, 0, 0.1);
+  border: 2px solid rgba(0, 0, 0, 0.1);
+} */
+
+.date {
+  background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+  font-weight: 600;
+  /* border: 2px solid rgba(0, 0, 0, 0.1); */
+}
+
+.highlighted {
+  background: linear-gradient(135deg, #74c0fc, #4dabf7);
+  border: 2px solid #FFEE88;
+  color: #1c1c1c;
+  box-shadow: 0 0 0 2px rgba(24, 100, 171, 0.3),
+              inset 0 2px 4px rgba(255, 255, 255, 0.2);
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  z-index: 3;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 2px rgba(24, 100, 171, 0.3),
+                inset 0 2px 4px rgba(255, 255, 255, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 0 4px rgba(24, 100, 171, 0.3),
+                inset 0 2px 4px rgba(255, 255, 255, 0.2);
+  }
 }
 </style>

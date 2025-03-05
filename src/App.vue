@@ -12,6 +12,7 @@ interface PuzzlePiece {
   initPosition: { x: number; y: number };
   position: { x: number; y: number };
   rotation: number;
+  rotationCount?: number;
   placed: boolean;
   scale: number;
   anchorCell?: number;
@@ -22,6 +23,7 @@ interface BoardCell {
   x: number;
   y: number;
 }
+
 
 const gameara = useTemplateRef<HTMLDivElement>('gamearea')
 // const boardRef = useTemplateRef<HTMLDivElement>('board')
@@ -69,12 +71,17 @@ const checkAllSoundsLoaded = () => {
     isLoading.value = false;
     soundsReady.value = true;
     // We don't auto-play sounds anymore, wait for user interaction
+  
   }
 };
 
 // Start the game after user interaction (clicking start button)
 const startGame = () => {
   gameStarted.value = true;
+  if(!localStorage.getItem('firstTime')){
+    localStorage.setItem('firstTime', 'false')
+    showHelp.value = true
+  }
   if (soundEnabled.value) {
     // Now we can play the ambient sound as user has interacted
     sounds.ambient.play();
@@ -113,6 +120,7 @@ const puzzlePieces = ref<PuzzlePiece[]>([
     initPosition:{x:10,y:100},
     position:{x:10,y:100},
     rotation:0,
+    rotationCount: undefined,
     placed:false,
     scale:0.5,
     anchorCell:undefined
@@ -127,6 +135,7 @@ const puzzlePieces = ref<PuzzlePiece[]>([
     initPosition:{x:120,y:100},
     position:{x:120,y:100},
     rotation:0,
+    rotationCount: undefined,
     placed:false,
     scale:0.5,
     anchorCell:undefined
@@ -141,6 +150,7 @@ const puzzlePieces = ref<PuzzlePiece[]>([
     initPosition:{x:200,y:100},
     position:{x:200,y:100},
     rotation:0,
+    rotationCount: undefined,
     placed:false,
     scale:0.5,
     anchorCell:undefined
@@ -154,6 +164,7 @@ const puzzlePieces = ref<PuzzlePiece[]>([
     initPosition:{x:290,y:100},
     position:{x:290,y:100},
     rotation:0,
+    rotationCount: undefined,
     placed:false,
     scale:0.5,
     anchorCell:undefined
@@ -167,6 +178,7 @@ const puzzlePieces = ref<PuzzlePiece[]>([
     initPosition:{x:20,y:160},
     position:{x:20,y:160},
     rotation:0,
+    rotationCount: undefined,
     placed:false,
     scale:0.5,
     anchorCell:undefined
@@ -181,6 +193,7 @@ const puzzlePieces = ref<PuzzlePiece[]>([
     initPosition:{x:110,y:160},
     position:{x:110,y:160},
     rotation:0,
+    rotationCount: undefined,
     placed:false,
     scale:0.5,
     anchorCell:undefined
@@ -196,6 +209,7 @@ const puzzlePieces = ref<PuzzlePiece[]>([
     initPosition:{x:200,y:160},
     position:{x:200,y:160},
     rotation:0,
+    rotationCount: undefined,
     placed:false,
     scale:0.5,
     anchorCell:undefined
@@ -211,6 +225,7 @@ const puzzlePieces = ref<PuzzlePiece[]>([
     initPosition:{x:290,y:160},
     position:{x:290,y:160},
     rotation:0,
+    rotationCount: undefined,
     placed:false,
     scale:0.5,
     anchorCell:undefined
@@ -226,6 +241,7 @@ const puzzlePieces = ref<PuzzlePiece[]>([
     initPosition:{x:20,y:220},
     position:{x:20,y:220},
     rotation:0,
+    rotationCount: undefined,
     placed:false,
     scale:0.5,
     anchorCell:undefined
@@ -242,6 +258,7 @@ const puzzlePieces = ref<PuzzlePiece[]>([
     initPosition:{x:110,y:220},
     position:{x:110,y:220},
     rotation:0,
+    rotationCount: undefined,
     placed:false,
     scale:0.5,
     anchorCell:undefined
@@ -312,30 +329,71 @@ onMounted(() => {
       }
     })
   })
+  // set localstorage first time
+  
 })
+
+const needsFlipping = (shape: number[][]): boolean => {
+  const rows = shape.length;
+  const cols = shape[0].length;
+  
+  // Check if the piece is symmetrical along vertical axis
+  for (let i = 0; i < rows; i++) {
+    for (let j = 0; j < Math.floor(cols / 2); j++) {
+      if (shape[i][j] !== shape[i][cols - 1 - j]) {
+        return true; // Asymmetrical piece needs flipping
+      }
+    }
+  }
+  return false; // Symmetrical piece doesn't need flipping
+}
+
 const rotatePiece = (piece: PuzzlePiece) => {
   // Remove the piece from the board
   if(piece.placed==true){
     gameStore.removePiece(piece)
     piece.placed = false
     piece.scale = 0.5
-  
   }
 
-  // Create a new rotated shape matrix
   const rows = piece.shape.length;
   const cols = piece.shape[0].length;
   const newShape = Array(cols).fill(0).map(() => Array(rows).fill(0));
-  
-  for (let i = 0; i < rows; i++) {
-    for (let j = 0; j < cols; j++) {
-      newShape[j][rows - 1 - i] = piece.shape[i][j];
+
+  // Initialize rotation count if not exists
+  if (piece.rotationCount === undefined) {
+    piece.rotationCount = 0;
+  }
+
+  if (piece.rotationCount < 4) {
+    // Normal rotation
+    for (let i = 0; i < rows; i++) {
+      for (let j = 0; j < cols; j++) {
+        newShape[j][rows - 1 - i] = piece.shape[i][j];
+      }
     }
+    piece.rotation = (piece.rotation + 90) % 360;
+    piece.rotationCount++;
+  } else if (needsFlipping(piece.shape)) {
+    // Only flip if the piece is asymmetrical
+    for (let i = 0; i < rows; i++) {
+      for (let j = 0; j < cols; j++) {
+        newShape[i][cols - 1 - j] = piece.shape[i][j];
+      }
+    }
+    piece.rotationCount = 0;
+  } else {
+    // For symmetrical pieces, just reset the counter and start rotation again
+    piece.rotationCount = 0;
+    for (let i = 0; i < rows; i++) {
+      for (let j = 0; j < cols; j++) {
+        newShape[j][rows - 1 - i] = piece.shape[i][j];
+      }
+    }
+    piece.rotation = (piece.rotation + 90) % 360;
   }
   
   piece.shape = newShape;
-
-  piece.rotation = (piece.rotation + 90) % 360;
 }
 
 function insideBoard(x: number, y: number): boolean {
@@ -404,8 +462,9 @@ function snapToNearestCell(pieceId: number) {
     } else {
       // shake piece
       piece.placed = false
-     
       piece.scale = 0.5
+ 
+    
       
       // Play failed placement sound
       if (soundEnabled.value) {
@@ -477,6 +536,7 @@ function resetGame(){
   puzzlePieces.value.forEach((piece) => {
     piece.position = piece.initPosition
     piece.rotation = 0
+    piece.rotationCount = undefined
     piece.placed = false
     piece.scale = 0.5
     piece.anchorCell = undefined
@@ -568,6 +628,11 @@ const toggleDatePicker = () => {
      <div class="absolute inset-0 bg-black/50" @click="toggleHelp"></div>
      <div class="bg-white w-11/12 max-w-md p-6 rounded-2xl shadow-xl z-40 relative">
        <h2 class="text-xl font-semibold mb-4 text-amber-800">How to Play</h2>
+       <div class="flex justify-center items-center">
+        <video autoplay loop muted playsinline class="w-48 md:w-72 rounded-lg mb-4">
+          <source src="@/assets/demo/demo.mp4" type="video/mp4">
+        </video>
+       </div>
        <ul class="list-disc pl-5 space-y-2 text-amber-700">
          <li>Drag puzzle pieces to place them on the board</li>
          <li>On mobile devices Long press a piece to rotate it</li>
@@ -608,7 +673,7 @@ const toggleDatePicker = () => {
      </div>
    </div>
     <div class="board absolute left-1/2 top-1/2 md:-translate-y-1/2 -translate-x-1/2 ">
-      <BoardMain class="board-main" />
+      <BoardMain class="board-main" v-model:solve-date="dateToSolve" />
     </div>
     <div 
       v-for="piece in puzzlePieces" 
